@@ -1,10 +1,27 @@
-<html>
+>
     <head>
-        <script src='assets/lib/phaser/src/Phaser.js'></script>
+        <script src='assets/lib/phaser/build/phaser.js'></script>
+        <script src='app/alan.js'></script>
+        <script src='app/dan.js'></script>
+        <script src='app/gabe.js'></script>
+        <script src='app/robin.js'></script>
     </head>
 
     <body>
-        <script src='app/core.js'></script>
+        <script type='text/javascript'>
+            
+            var game = Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create: create, update: update})
+
+            function preload(){
+            }
+
+            function create(){
+            }
+
+            function update(){
+            }
+
+        </script>
     </body>
 </html>
 
