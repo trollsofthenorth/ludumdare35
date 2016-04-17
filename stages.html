@@ -1,0 +1,41 @@
+
+<html>
+    <head>
+        <script src='assets/lib/phaser/build/phaser.min.js'></script> 
+        <script src='js/bootscreen.js'></script> 
+        <script src='js/loadscreen.js'></script> 
+        <script src='js/titlescreen.js'></script> 
+        <script src='js/stage1.js'></script> 
+    </head>
+
+    <body>
+        <script type='text/javascript'>
+            var state_boot = function(game){
+            	console.log("%cStarting my awesome game", "color:white; background:red");
+            };
+              
+            state_boot.prototype = {
+            	preload: function(){
+                      this.game.load.image("loading","assets/loading.png"); 
+            	},
+              	create: function(){
+            		this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            		this.scale.pageAlignHorizontally = true;
+            		this.scale.setScreenSize();
+            		this.game.add.text(0,0, 'Hello, world!');
+            		setTimeout(function(){}, 5000);
+            		this.game.state.start("Preload");
+            	}
+            }
+            
+            // GLOBALS
+            var game = new Phaser.Game(800, 600, Phaser.CANVAS, '');
+            game.state.add("Boot", state_boot);
+            game.state.add("Middle", state_middle);
+            game.state.add("End", state_end);
+            game.state.start("Boot");
+
+
+        </script>
+    </body>
+</html>

@@ -37,36 +37,33 @@
             var enemyCollisionGroup;
             var snakebits;
             var hitpoints = 100;
-            var gamestring = "Shape Soup! : ";
-            //var loading_x = 32;
-            //var loading_y = 80;
+            var gamestring = "Tiny Bags of Water You Are Made Of : ";
             
             //phys
             var phys_impact_range = 2000;
             var phys_repulse_range = 1000;
             var phys_spread_range = 1100;
-            
             // STAGES AND SCREENS
             
             var testStage = function(game){
                 console.log('Starting test stage...');
             };
-            testStage.prototype = {preload: preload, create: stage_test_create, update: update};
+            testStage.prototype = {preload: preload, create: create, update: update};
             
             var stage1 = function(game){
                 console.log('Starting stage 1...');
             };
-            stage1.prototype = {preload: preload, create: stage_one_create, update: update};
+            stage1.prototype = {preload: preload, create: create, update: update};
             
             var stage2 = function(game){
                 console.log('Starting stage 2...');
             };
-            stage2.prototype = {preload: preload, create: stage_two_create, update: update};
+            stage2.prototype = {preload: preload, create: create, update: update};
             
             var stage3 = function(game){
                 console.log('Starting stage 3...');
             };
-            stage3.prototype = {preload: preload, create: stage_three_create, update: update};
+            stage3.prototype = {preload: preload, create: create, update: update};
             
             
             // Creating other stages and screens for future development.
@@ -104,106 +101,51 @@
             
             function preload(){
                 game.time.advancedTiming = true;
-                
-                // Loading time map for all of the stages.
-                game.load.tilemap('testmap', 'assets/stages/testmap.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage1map', 'assets/stages/stage1map.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage2map', 'assets/stages/stage2map.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage3map', 'assets/stages/stage3map.json', null, Phaser.Tilemap.TILED_JSON);
-                
-                // Load character spritesheets.
+
                 game.load.spritesheet('friendly_triangle', "assets/images/triangle-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_square', "assets/images/square-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_circle', "assets/images/circle-spritesheet.png", 32, 32);
                 game.load.spritesheet('player_spritesheet', 'assets/images/player-spritesheet.png', 32, 32);
-                game.load.spritesheet('goal_spritesheet', 'assets/images/goal-spritesheet.png', 32, 32);
-                //game.load.spritesheet("goal", "assets/images/sprites/temp_goal.png", 32, 32);
+                game.load.spritesheet("goal", "assets/images/sprites/temp_goal.png", 32, 32);
                 
-                // Load tileset images.
-                game.load.image('tileset', 'assets/images/stagetileset.png');
-                
-                // Load background
+                game.load.tilemap('tilemap1', 'assets/stages/tilemap1.json', null, Phaser.Tilemap.TILED_JSON);
+                game.load.image('tileset1', 'assets/images/tileset1.png');
+                game.load.image('player_tileset_image', 'assets/images/player-spritesheet.png', 32, 32);
                 game.load.image('background', 'assets/images/background.png');
                 
-                // Load music
                 game.load.audio('music', 'assets/sound/background_music.mp3');
                 
             };
 
-            function stage_test_create(){
-                map = game.add.tilemap('testmap', 32, 32);
-                shared_create();
-            };
-
-            function stage_one_create(){
-                map = game.add.tilemap('stage1map', 32, 32);
-                shared_create();
-            };
-            
-            function stage_two_create(){
-                map = game.add.tilemap('stage2map', 32, 32);
-                shared_create();
-            };
-            
-            function stage_three_create(){
-                map = game.add.tilemap('stage3map', 32, 32);
-                shared_create();
-            };
-            
-            function empty_create() {
-                console.log("EMPTY_CREATE CALLED");
-            }
-            
-            function shared_create() {
+            function create(){
+                /*global Phaser*/
                 
-                // Common map logic
-                map.addTilesetImage('tileset');
+                /*
+                switch(game.stage.current) {
+                    case 'stage1':
+                
+                */
+                
                 tilesprite = game.add.tileSprite(0,0,3200,3200,'background');
+                map = game.add.tilemap('tilemap1', 32, 32);
+                map.addTilesetImage('tileset1');
+                map.addTilesetImage('player_tileset_image');
                 tileLayer = map.createLayer('tileLayer');
                 tileLayer.resizeWorld();
                 
-                // Physics
+                shared_create();
+            }
+            
+            function shared_create() {
                 game.physics.startSystem(Phaser.Physics.P2JS);
-                game.physics.p2.setImpactEvents(true);
 
                 // Promote a player object from the objectLayer
                 hero_group = game.add.group();
                 hero_group.enableBody = true;
                 hero_group.enableBodyDebug = true;
                 hero_group.physicsBodyType = Phaser.Physics.P2JS
-                map.createFromObjects('objectLayer', 151, 'player_spritesheet', 0, true, false, hero_group);
+                map.createFromObjects('objectLayer', 626, 'player_spritesheet', 0, true, false, hero_group);
                 player = hero_group.children[0];
-                
-                if (player == null) {
-                    console.log("There is no player in this stage.");
-                } else {
-                    player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1]);
-                    player.animations.play();
-                    game.physics.p2.enable(player);
-                    
-                    player.body.data_accel = 100;
-                    player.body.damping = 0.5;
-                    player.body.setCircle(20)
-                    game.camera.follow(player);
-                    player.body.onBeginContact.add(playerCollision);
-                }
-                
-                
-                // Promote a Macguffin object from the objectLayer
-                goal_group = game.add.group();
-                //goal_group.enableBody = true;
-                //var goal = end_goal.create(game.world.width/2, game.world.height/2, 'goal');
-                map.createFromObjects('objectLayer', 101, 'goal_spritesheet', 0, true, false, goal_group);
-                goal = goal_group.children[0];
-                
-                if (goal == null) {
-                    console.log("There is no macguffin in this stage.");
-                } else {
-                    game.physics.p2.enable(goal);
-                    goal.body.immovable = true;
-                    goal.body.setCircle(10);
-                    goal.data_shape = "GOAL"
-                }
                 
                 // Initialize all NPCs
                 npcs = game.add.group();
@@ -232,7 +174,21 @@
                 fps = game.add.text(32, 60, 'fps', {font: '15px Arial', fill: '#FFFFFF' });
                 fps.fixedToCamera=true;
                 
+                game.physics.p2.setImpactEvents(true)
+                
+                //hero_current_state = hero_state.SQUARE;
+                 
+                player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1])
+                player.animations.play()
 
+                //  We need to enable physics on the player
+                game.physics.p2.enable(player);
+                
+                player.body.data_accel = 100;
+                player.body.damping = 0.5;
+                player.body.setCircle(20)
+                game.camera.follow(player);
+                player.body.onEndContact.add(playerCollision)
                 
                 cursors = game.input.keyboard.createCursorKeys();
                 
@@ -240,6 +196,7 @@
                 game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
                 
                 // Setup NPCs
+                
                 npcs.enableBody = true;
                 npcs.physicsBodyType = Phaser.Physics.P2JS
                 game.physics.p2.enable(npcs);
@@ -252,7 +209,7 @@
                     npc.data_maxAccel = 0.1;
                     npc.data_maxSpeed = 25;
                     npc.body.mass = 0.5;
-                    npc.body.setCircle(10);
+                    npc.body.setCircle(16);
                     });
                 squares.children.forEach(function(npc, idx) {
                     //var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_square');
@@ -338,7 +295,12 @@
                 snakeHead.body.mass = 5;
                 */
                 // goal definition.
-                
+                end_goal = game.add.group();
+                var goal = end_goal.create(game.world.width/2, game.world.height/2, 'goal');
+                game.physics.p2.enable(goal);
+                goal.body.immovable = true;
+                goal.body.setCircle(10);
+                goal.data_shape = "GOAL"
 
                 game_current_state = game_state.PLAYING;
             };
@@ -354,11 +316,11 @@
                         case hero_state.CIRCLE:
                             if (a.sprite.data_shape == 'circle') {
                                 //console.log('like collision')
-                                score += score_like;
+                                score += score_like
                                 kill_npc(a.sprite);
                             } else {
                                 //console.log('unlike collision')
-                                score += score_unlike;
+                                score += score_unlike
                             }
                             break;
 
@@ -369,7 +331,7 @@
                                 kill_npc(a.sprite);
                             } else {
                                 //console.log('unlike collision')
-                                score += score_unlike;
+                                score += score_unlike
                             }
                             break;
 
@@ -425,7 +387,7 @@
                     game.physics.p2.enable(nextitem, false);
                     nextitem.body.setCircle(16);
                     nextitem.body.mass = 1;
-                    nextitem.body.data.gravityScale=0;
+                    nextitem.body.data.gravityScale=0
                     game.physics.p2.createRevoluteConstraint(nextitem, [0,-10], lastitem, [0,10], 20000);
                     lastitem = nextitem;
                 }
@@ -434,6 +396,9 @@
             }
 
             function update(){
+                
+                
+                
                 //player.body.setZeroVelocity();
                 hud_update()  // update text on screen
                 /*game.physics.p2.collide */
@@ -490,15 +455,15 @@
                 npcs.forEachAlive( function(npc_group, idx) {
                     npc_group.forEachAlive(function(npc, idx) {
                     //var npc = npcs.children[i]
-                    var npc_velocity = 1;
-                    var npc_cur_x = npc.body.x;
-                    var npc_cur_y = npc.body.y;
-                    var player_cur_x = player.body.x;
-                    var player_cur_y = player.body.y;
+                    var npc_velocity = 1
+                    var npc_cur_x = npc.body.x
+                    var npc_cur_y = npc.body.y
+                    var player_cur_x = player.body.x
+                    var player_cur_y = player.body.y
                     
-                    var delta_x = npc_cur_x - player_cur_x;
-                    var delta_y = npc_cur_y - player_cur_y;
-                    var magnitude = Math.sqrt(delta_x * delta_x + delta_y * delta_y);
+                    var delta_x = npc_cur_x - player_cur_x
+                    var delta_y = npc_cur_y - player_cur_y
+                    var magnitude = Math.sqrt(delta_x * delta_x + delta_y * delta_y)
                     var vel_mul = 1;
                     if (magnitude < phys_impact_range) {
                         switch(hero_current_state) {
@@ -554,13 +519,13 @@
                         //npc.body.data.velocity[0] = delta_x
                         //npc.body.data.velocity[1] = delta_y
                     
-                        npc.body.data.velocity[0] = delta_x * vel_mul;
-                        npc.body.data.velocity[1] = delta_y * vel_mul;
+                        npc.body.data.velocity[0] = delta_x * vel_mul
+                        npc.body.data.velocity[1] = delta_y * vel_mul
                         
                         if (npc.data_maxSpeed) {
-                            constrainVelocity(npc, npc.data_maxSpeed);
+                            constrainVelocity(npc, npc.data_maxSpeed)
                         } else {
-                            constrainVelocity(npc, 10);
+                            constrainVelocity(npc, 10)
                         }
                     }
             

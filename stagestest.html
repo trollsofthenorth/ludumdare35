@@ -1,0 +1,58 @@
+
+<html>
+    <head>
+        <script src='assets/lib/phaser/build/phaser.min.js'></script> 
+    </head>
+
+    <body>
+        <script type='text/javascript'>
+            var state_boot = function(game){
+                console.log("state_boot()");
+            };
+              
+            state_boot.prototype = {
+            	preload: function(){
+            	    console.log("state_boot.prototype.preload");
+                      this.game.load.image("loading","assets/loading.png");
+            	},
+              	create: function(){
+              	    console.log("state_boot.prototype.create");
+              	    text = this.game.add.text(32, 32, "state_boot_create", {font: '15px Arial', fill: '#FFFFFF' });
+            		this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            		this.scale.pageAlignHorizontally = true;
+            		//this.scale.setScreenSize();
+            		this.game.state.start("Middle");
+            	}
+            };
+
+
+            var state_middle = function(game){
+                console.log("state_middle()");
+            };
+              
+            state_middle.prototype = {
+            	preload: function(){
+            	    console.log("state_middle.prototype.preload");
+            	},
+              	create: function(){
+              	    console.log("state_middle.prototype.create");
+              	    text = this.game.add.text(32, 60, "state_middle_create", {font: '15px Arial', fill: '#FFFFFF' });
+              	    var exitButton = this.game.add.button(160,100,"Exit",this.clickedExit,this);
+            	},
+            	clickedExit: function() {
+            	    this.game.state.start("Boot");
+            	}
+            }
+
+
+            // GLOBALS
+            var game = new Phaser.Game(800, 600, Phaser.CANVAS, '');
+            game.state.add("Boot", state_boot);
+            game.state.add("Middle", state_middle);
+            //game.state.add("End", state_end);
+            game.state.start("Boot");
+
+
+        </script>
+    </body>
+</html>

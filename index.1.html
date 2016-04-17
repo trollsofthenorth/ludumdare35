@@ -4,6 +4,9 @@
         <script src='assets/lib/phaser/build/phaser.min.js'></script> 
         <script src='js/loadscreen.js'></script> 
         <script src='js/titlescreen.js'></script> 
+        <script src='js/stage1.js'></script> 
+        <script src='js/stage2.js'></script> 
+        <script src='js/stage3.js'></script> 
         <script src='js/creditsscreen.js'></script> 
         <script src='js/winscreen.js'></script> 
         <script src='js/defeatscreen.js'></script> 
@@ -30,6 +33,7 @@
             var score_like = 10; // points for like collision
             var score_unlike = -20; // points for unlike collision
             var end_goal;
+            var cursorproxybody;
             var line;
             var snakeHead;
             var playerCollisionGroup;
@@ -37,37 +41,15 @@
             var enemyCollisionGroup;
             var snakebits;
             var hitpoints = 100;
-            var gamestring = "Shape Soup! : ";
-            //var loading_x = 32;
-            //var loading_y = 80;
-            
-            //phys
-            var phys_impact_range = 2000;
-            var phys_repulse_range = 1000;
-            var phys_spread_range = 1100;
+            var gamestring = "Tiny Bags of Water You Are Made Of : ";
             
             // STAGES AND SCREENS
             
+            // Createing declaring that our initial stage was our test stage.
             var testStage = function(game){
                 console.log('Starting test stage...');
             };
-            testStage.prototype = {preload: preload, create: stage_test_create, update: update};
-            
-            var stage1 = function(game){
-                console.log('Starting stage 1...');
-            };
-            stage1.prototype = {preload: preload, create: stage_one_create, update: update};
-            
-            var stage2 = function(game){
-                console.log('Starting stage 2...');
-            };
-            stage2.prototype = {preload: preload, create: stage_two_create, update: update};
-            
-            var stage3 = function(game){
-                console.log('Starting stage 3...');
-            };
-            stage3.prototype = {preload: preload, create: stage_three_create, update: update};
-            
+            testStage.prototype = {preload: preload, create: create, update: update};
             
             // Creating other stages and screens for future development.
             game.state.add('loadScreen', loadScreen);
@@ -80,6 +62,7 @@
             game.state.add('winScreen', winScreen);
             game.state.add('creditsScreen', creditsScreen);
             game.state.start('loadScreen');
+            
             
             /*
             function enemy_creation(shape, damage, speed) {
@@ -97,134 +80,43 @@
                 npc_sprite.kill();
                 npcs.children.forEach( function (item, idx) {
                     if (item == npc_sprite) {
-                        //console.log('Found it! '+ idx);
+                        console.log('Found it! '+ idx);
                     }
                 });
             };
             
             function preload(){
                 game.time.advancedTiming = true;
-                
-                // Loading time map for all of the stages.
-                game.load.tilemap('testmap', 'assets/stages/testmap.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage1map', 'assets/stages/stage1map.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage2map', 'assets/stages/stage2map.json', null, Phaser.Tilemap.TILED_JSON);
-                game.load.tilemap('stage3map', 'assets/stages/stage3map.json', null, Phaser.Tilemap.TILED_JSON);
-                
-                // Load character spritesheets.
+
                 game.load.spritesheet('friendly_triangle', "assets/images/triangle-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_square', "assets/images/square-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_circle', "assets/images/circle-spritesheet.png", 32, 32);
                 game.load.spritesheet('player_spritesheet', 'assets/images/player-spritesheet.png', 32, 32);
-                game.load.spritesheet('goal_spritesheet', 'assets/images/goal-spritesheet.png', 32, 32);
-                //game.load.spritesheet("goal", "assets/images/sprites/temp_goal.png", 32, 32);
+                game.load.spritesheet("goal", "assets/images/sprites/temp_goal.png", 32, 32);
                 
-                // Load tileset images.
-                game.load.image('tileset', 'assets/images/stagetileset.png');
-                
-                // Load background
+                game.load.tilemap('tilemap1', 'assets/stages/organic-tilemap.json', null, Phaser.Tilemap.TILED_JSON);
+                game.load.image('tileset1', 'assets/images/organic-tileset.png');
                 game.load.image('background', 'assets/images/background.png');
                 
-                // Load music
                 game.load.audio('music', 'assets/sound/background_music.mp3');
-                
             };
 
-            function stage_test_create(){
-                map = game.add.tilemap('testmap', 32, 32);
-                shared_create();
-            };
-
-            function stage_one_create(){
-                map = game.add.tilemap('stage1map', 32, 32);
-                shared_create();
-            };
-            
-            function stage_two_create(){
-                map = game.add.tilemap('stage2map', 32, 32);
-                shared_create();
-            };
-            
-            function stage_three_create(){
-                map = game.add.tilemap('stage3map', 32, 32);
-                shared_create();
-            };
-            
-            function empty_create() {
-                console.log("EMPTY_CREATE CALLED");
-            }
-            
-            function shared_create() {
-                
-                // Common map logic
-                map.addTilesetImage('tileset');
-                tilesprite = game.add.tileSprite(0,0,3200,3200,'background');
-                tileLayer = map.createLayer('tileLayer');
-                tileLayer.resizeWorld();
-                
-                // Physics
+            function create(){
+                /*global Phaser*/
                 game.physics.startSystem(Phaser.Physics.P2JS);
-                game.physics.p2.setImpactEvents(true);
 
-                // Promote a player object from the objectLayer
-                hero_group = game.add.group();
-                hero_group.enableBody = true;
-                hero_group.enableBodyDebug = true;
-                hero_group.physicsBodyType = Phaser.Physics.P2JS
-                map.createFromObjects('objectLayer', 151, 'player_spritesheet', 0, true, false, hero_group);
-                player = hero_group.children[0];
-                
-                if (player == null) {
-                    console.log("There is no player in this stage.");
-                } else {
-                    player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1]);
-                    player.animations.play();
-                    game.physics.p2.enable(player);
-                    
-                    player.body.data_accel = 100;
-                    player.body.damping = 0.5;
-                    player.body.setCircle(20)
-                    game.camera.follow(player);
-                    player.body.onBeginContact.add(playerCollision);
-                }
-                
-                
-                // Promote a Macguffin object from the objectLayer
-                goal_group = game.add.group();
-                //goal_group.enableBody = true;
-                //var goal = end_goal.create(game.world.width/2, game.world.height/2, 'goal');
-                map.createFromObjects('objectLayer', 101, 'goal_spritesheet', 0, true, false, goal_group);
-                goal = goal_group.children[0];
-                
-                if (goal == null) {
-                    console.log("There is no macguffin in this stage.");
-                } else {
-                    game.physics.p2.enable(goal);
-                    goal.body.immovable = true;
-                    goal.body.setCircle(10);
-                    goal.data_shape = "GOAL"
-                }
-                
-                // Initialize all NPCs
-                npcs = game.add.group();
-                triangles = game.add.group();
-                squares = game.add.group();
-                circles = game.add.group();
-                
-                npcs.add(triangles);
-                npcs.add(squares);
-                npcs.add(circles);
-                
-                map.createFromObjects('objectLayer', 76, 'friendly_triangle', 0, true, false, triangles);
-                map.createFromObjects('objectLayer', 126, 'friendly_square', 0, true, false, squares);
-                map.createFromObjects('objectLayer', 177, 'friendly_circle', 0, true, false, circles);
+                tilesprite = game.add.tileSprite(0,0,3200,3200,'background');
+                map = game.add.tilemap('tilemap1', 32, 32);
+                map.addTilesetImage('tileset1');
+                layer = map.createLayer('layer1');
+                layer.resizeWorld();
                 
                 music = game.add.audio('music');
                 //music.play();
                 //music.loopFull(0.6);
                 
-                map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52,53], true, 'tileLayer');
-                game.physics.p2.convertTilemap(map, tileLayer);
+                map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52,53], true, 'layer1');
+                game.physics.p2.convertTilemap(map, layer);
                 
                 text = game.add.text(32, 32, gamestring + game.world.width + 'x' + game.world.height, {font: '15px Arial', fill: '#FFFFFF' });
                 text.fixedToCamera=true;
@@ -232,75 +124,40 @@
                 fps = game.add.text(32, 60, 'fps', {font: '15px Arial', fill: '#FFFFFF' });
                 fps.fixedToCamera=true;
                 
+                game.physics.p2.setImpactEvents(true)
+                
+                player = game.add.sprite(400, 200, 'player_spritesheet', 0);
+                hero_current_state = hero_state.SQUARE;
+                 
+                player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1])
+                player.animations.play()
 
+                //  We need to enable physics on the player
+                game.physics.p2.enable(player);
+                
+                player.body.data_accel = 100;
+                player.body.damping = 0.5;
+                player.body.setCircle(20)
+                game.camera.follow(player);
+                player.body.onEndContact.add(playerCollision)
+                // Alan experiment
+                //cursorproxybody = game.add.sprite(player.body.position.x, player.body.position.y, 'cursor');
                 
                 cursors = game.input.keyboard.createCursorKeys();
                 
                 spacekey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
                 game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
                 
-                // Setup NPCs
+                npcs = game.add.group();
+                //TODO -- add varied speeds to different enemies
+                //TODO -- implement collision detection between enemies so they "bounce" off each other?
                 npcs.enableBody = true;
+                //npcs.enableBodyDebug = true;
                 npcs.physicsBodyType = Phaser.Physics.P2JS
-                game.physics.p2.enable(npcs);
-
-                triangles.children.forEach(function(npc, idx) {
-                    //var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_triangle');
-                    npc.animations.add('friendly_triangle', [0,0,0,1,2,3,4]);
-                    npc.animations.play('friendly_triangle', (Math.random() * 5), true);
-                    npc.data_shape = 'triangle';
-                    npc.data_maxAccel = 0.1;
-                    npc.data_maxSpeed = 25;
-                    npc.body.mass = 0.5;
-                    npc.body.setCircle(10);
-                    });
-                squares.children.forEach(function(npc, idx) {
-                    //var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_square');
-                    npc.animations.add('friendly_square', [0,0,0,1,2,3,4]);
-                    npc.animations.play('friendly_square', (Math.random() * 5), true);
-                    npc.data_shape = 'square';
-                    npc.data_maxAccel = 0.6;
-                    npc.data_maxSpeed = 12;
-                    npc.body.mass = 1;
-                    npc.body.setCircle(16);
-                    });
-                circles.children.forEach(function(npc, idx) {
-                    //var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_circle');
-                    npc.animations.add('friendly_circle', [0,0,0,1,2,3,4]);
-                    npc.animations.play('friendly_circle', (Math.random() * 5), true);
-                    npc.data_shape = 'circle';
-                    npc.data_maxAccel = 1;
-                    npc.data_maxSpeed = 10;
-                    npc.body.mass = 1.5;
-                    npc.body.setCircle(16);
-                    });
-
-                //for (var i = 0; i < 100; i++) {
+                for (var i = 0; i < 100; i++) {
                     /*
                         Friendly animations are frames 0-4.  Angry animations are frames 5-9.
                     */
-                    
-                    /* example for discussion
-
-
-                        npc_group = game.add.group();
-                        npc_group.enableBody = true;
-                        npc_group.physicsBodyType = Phaser.Physics.P2JS
-                        
-                        // Convert the objectLayer.626 to the Player. There should only be one of these.
-                        map.createFromObjects('objectLayer', 888, 'happy_square', 0, true, false, npc_group);
-                        
-                        
-                        
-                        var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_circle');
-                        npc.animations.add('friendly_circle', [0,0,0,1,2,3,4]);
-                        npc.animations.play('friendly_circle', (Math.random() * 5), true);
-                        npc.data_shape = 'circle';
-                        npc.data_maxAccel = 1;
-                        npc.data_maxSpeed = 10;
-                    
-                    */
-                    /*
                     var rand = Math.random() * 3
                     if (rand >= 2) { // circle
                         var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_circle');
@@ -325,10 +182,8 @@
                         npc.data_maxAccel = 0.8;
                         npc.data_maxSpeed = 12;
                     }
-                    npc.body.setCircle(16);*/
-                //}
-                /*
-                
+                    npc.body.setCircle(16);
+                }
                 
                 snakeHead = npcs.create(400,400, 'snakehead');
                 snakeHead.data_shape = "snake";
@@ -336,9 +191,14 @@
                 snakebits = createSnake( snakeHead, 20 );
                 snakeHead.body.setCircle(16);
                 snakeHead.body.mass = 5;
-                */
+            
                 // goal definition.
-                
+                end_goal = game.add.group();
+                var goal = end_goal.create(game.world.width/2, game.world.height/2, 'goal');
+                game.physics.p2.enable(goal);
+                goal.body.immovable = true;
+                goal.body.setCircle(10);
+                goal.data_shape = "GOAL"
 
                 game_current_state = game_state.PLAYING;
             };
@@ -354,11 +214,11 @@
                         case hero_state.CIRCLE:
                             if (a.sprite.data_shape == 'circle') {
                                 //console.log('like collision')
-                                score += score_like;
+                                score += score_like
                                 kill_npc(a.sprite);
                             } else {
                                 //console.log('unlike collision')
-                                score += score_unlike;
+                                score += score_unlike
                             }
                             break;
 
@@ -369,7 +229,7 @@
                                 kill_npc(a.sprite);
                             } else {
                                 //console.log('unlike collision')
-                                score += score_unlike;
+                                score += score_unlike
                             }
                             break;
 
@@ -425,7 +285,7 @@
                     game.physics.p2.enable(nextitem, false);
                     nextitem.body.setCircle(16);
                     nextitem.body.mass = 1;
-                    nextitem.body.data.gravityScale=0;
+                    nextitem.body.data.gravityScale=0
                     game.physics.p2.createRevoluteConstraint(nextitem, [0,-10], lastitem, [0,10], 20000);
                     lastitem = nextitem;
                 }
@@ -487,86 +347,67 @@
                     }
                 }
                 
-                npcs.forEachAlive( function(npc_group, idx) {
-                    npc_group.forEachAlive(function(npc, idx) {
-                    //var npc = npcs.children[i]
-                    var npc_velocity = 1;
-                    var npc_cur_x = npc.body.x;
-                    var npc_cur_y = npc.body.y;
-                    var player_cur_x = player.body.x;
-                    var player_cur_y = player.body.y;
-                    
-                    var delta_x = npc_cur_x - player_cur_x;
-                    var delta_y = npc_cur_y - player_cur_y;
-                    var magnitude = Math.sqrt(delta_x * delta_x + delta_y * delta_y);
-                    var vel_mul = 1;
-                    if (magnitude < phys_impact_range) {
-                        switch(hero_current_state) {
-                        case hero_state.TRIANGLE:
-                            if ((npc.data_shape == 'triangle') && (magnitude < phys_repulse_range)) {
-                                vel_mul = 0 - npc.data_maxAccel;
-                            } else if ((npc.data_shape == 'triangle') && (magnitude < phys_repulse_range)) {
-                                if (Math.random() < 0.001) {
-                                    vel_mul = 0 - npc.data_maxAccel;
-                                } else {
-                                    vel_mul = npc.data_maxAccel;
-                                }
-                            } else {
-                                vel_mul = npc.data_maxAccel;
-                            }
-                            break;
-                        case hero_state.CIRCLE:
-                            if ((npc.data_shape == 'circle') && (magnitude < phys_repulse_range)){
-                                vel_mul = 0 - npc.data_maxAccel;
-                            } else if ((npc.data_shape == 'circle') && (magnitude < phys_repulse_range)) {
-                                if (Math.random() < 0.001) {
-                                    vel_mul = 0 - npc.data_maxAccel;
-                                } else {
-                                    vel_mul = npc.data_maxAccel;
-                                }
-                            } else {
-                                vel_mul = npc.data_maxAccel;
-                            }
-                            break;
-                        case hero_state.SQUARE:
-                            if ((npc.data_shape == 'square') && (magnitude < phys_repulse_range)) {
-                                vel_mul = 0 - npc.data_maxAccel;
-                            } else if ((npc.data_shape == 'square') && (magnitude < phys_repulse_range)) {
-                                if (Math.random() < 0.001) {
-                                    vel_mul = 0 - npc.data_maxAccel;
-                                } else {
-                                    vel_mul = npc.data_maxAccel;
-                                }
-                            } else {
-                                vel_mul = npc.data_maxAccel;
-                            }
-                            break;
-                        }
-                        /*
-                        if (npc.data_shape == "snake") {
-                            var angle = Math.atan2(delta_y, delta_x );
-                            if(Math.abs(npc.body.rotation - angle) > 0.08) {
-                                // Don't bother if within 5 degrees
-                                //console.log("Updating snake rotation from " + npc.rotation + " to " + angle);
-                                npc.body.rotation = angle;
-                            }
-                        }*/
-                        //npc.body.data.velocity[0] = delta_x
-                        //npc.body.data.velocity[1] = delta_y
-                    
-                        npc.body.data.velocity[0] = delta_x * vel_mul;
-                        npc.body.data.velocity[1] = delta_y * vel_mul;
+                for (var i=0; i < npcs.children.length; i++){
+                    var npc = npcs.children[i]
+                    //if (npc.inCamera) {
+                        var npc_velocity = 1
+                        var npc_cur_x = npc.body.x
+                        var npc_cur_y = npc.body.y
+                        var player_cur_x = player.body.x
+                        var player_cur_y = player.body.y
                         
-                        if (npc.data_maxSpeed) {
-                            constrainVelocity(npc, npc.data_maxSpeed);
-                        } else {
-                            constrainVelocity(npc, 10);
+                        var delta_x = npc_cur_x - player_cur_x
+                        var delta_y = npc_cur_y - player_cur_y
+                        var magnitude = Math.sqrt(delta_x * delta_x + delta_y * delta_y)
+                        var vel_mul = 1;
+                        var repulse_range = 1000;
+                        if (magnitude < 2000) {  // max update range.
+                            switch(hero_current_state) {
+                            case hero_state.TRIANGLE:
+                                if ((npc.data_shape == 'triangle') && (magnitude < repulse_range)){
+                                    vel_mul = 0 - npc.data_maxAccel;
+                                } else {
+                                    vel_mul = npc.data_maxAccel;
+                                }
+                                break;
+                            case hero_state.CIRCLE:
+                                if ((npc.data_shape == 'circle') && (magnitude < repulse_range)) {
+                                    vel_mul = 0 - npc.data_maxAccel;
+                                } else {
+                                    vel_mul = npc.data_maxAccel;
+                                }
+                                break;
+                            case hero_state.SQUARE:
+                                if ((npc.data_shape == 'square') && (magnitude < repulse_range)) {
+                                    vel_mul = 0 - npc.data_maxAccel;
+                                } else {
+                                    vel_mul = npc.data_maxAccel;
+                                }
+                                break;
+                            }
+                            /*
+                            if (npc.data_shape == "snake") {
+                                var angle = Math.atan2(delta_y, delta_x );
+                                if(Math.abs(npc.body.rotation - angle) > 0.08) {
+                                    // Don't bother if within 5 degrees
+                                    //console.log("Updating snake rotation from " + npc.rotation + " to " + angle);
+                                    npc.body.rotation = angle;
+                                }
+                            }*/
+                            //npc.body.data.velocity[0] = delta_x
+                            //npc.body.data.velocity[1] = delta_y
+                        
+                            npc.body.data.velocity[0] = delta_x * vel_mul
+                            npc.body.data.velocity[1] = delta_y * vel_mul
+                            
+                            if (npc.data_maxSpeed) {
+                                constrainVelocity(npc, npc.data_maxSpeed)
+                            } else {
+                                constrainVelocity(npc, 10)
+                            }
                         }
-                    }
-            
-                });
-                    
-                });
+                    //}
+                }
                 
                 
                 constrainVelocity(player, 20);
