@@ -30,16 +30,16 @@
             var playerCollisionGroup;
             var goalCollisionGroup;
             var enemyCollisionGroup;
+            var snakebits;
             
             
             function preload(){
                 game.time.advancedTiming = true;
 
-                game.load.spritesheet("hero", "assets/images/sprites/hero.png", 32, 32);
                 game.load.spritesheet('friendly_triangle', "assets/images/triangle-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_square', "assets/images/square-spritesheet.png", 32, 32);
                 game.load.spritesheet('friendly_circle', "assets/images/circle-spritesheet.png", 32, 32);
-                game.load.spritesheet('player_square_spritesheet', 'assets/images/player-square-spritesheet.png', 32, 32);
+                game.load.spritesheet('player_spritesheet', 'assets/images/player-spritesheet.png', 32, 32);
                 game.load.spritesheet("goal", "assets/images/sprites/temp_goal.png", 32, 32);
                 
                 game.load.tilemap('tilemap1', 'assets/stages/organic-tilemap.json', null, Phaser.Tilemap.TILED_JSON);
@@ -64,7 +64,7 @@
                 //music.play();
                 //music.loopFull(0.6);
                 
-                map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52], true, 'layer1');
+                map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52,53], true, 'layer1');
                 game.physics.p2.convertTilemap(map, layer);
                 
                 text = game.add.text(32, 32, 'Tiny Bags of Water you are made Of : ' + game.world.width + 'x' + game.world.height, {font: '15px Arial', fill: '#FFFFFF' });
@@ -75,15 +75,11 @@
                 
                 game.physics.p2.setImpactEvents(true)
                 
-                player = game.add.sprite(400, 200, 'player_square_spritesheet', 0);
+                player = game.add.sprite(400, 200, 'player_spritesheet', 0);
                 hero_current = hero_state.SQUARE;
                  
-                player.animations.add('player_square_spritesheet', [0,0,0,0,0,0,0,0,1])
-                /*
-                player.animations.add('square', [0], 10, true);
-                player.animations.add('triangle', [1], 10, true);
-                player.animations.add('circle', [2], 10, true);
-                */
+                player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1])
+                player.animations.play()
 
                 //  We need to enable physics on the player
                 game.physics.p2.enable(player);
@@ -92,7 +88,7 @@
                 player.body.damping = 0.5;
                 player.body.setCircle(20)
                 game.camera.follow(player);
-                
+                player.body.onEndContact.add(playerCollision)
                 // Alan experiment
                 //cursorproxybody = game.add.sprite(player.body.position.x, player.body.position.y, 'cursor');
                 
@@ -103,6 +99,7 @@
                 
                 npcs = game.add.group();
                 npcs.enableBody = true;
+                npcs.enableBodyDebug = true;
                 npcs.physicsBodyType = Phaser.Physics.P2JS
                 for (var i = 0; i < 100; i++) {
                     /*
@@ -130,15 +127,12 @@
                 }
                 
                 snakeHead = npcs.create(400,400, 'snakehead');
-                createSnake( snakeHead, 20 );
-                game.physics.p2.enable(snakeHead);
+                snakeHead.data_shape = "snake";
+                game.physics.p2.enable(snakeHead, true);
+                snakebits = createSnake( snakeHead, 20 );
                 snakeHead.body.setCircle(16);
-                //snakeHead.body.static = true;
-                
-                
-                /*
-                var triangleFrames = Phaser.animations.generateFrameNames('friendly_triangle')
-                */
+                snakeHead.body.mass = 5;
+            
                 // goal definition.
                 end_goal = game.add.group();
                 var goal = end_goal.create(game.world.width-50, game.world.height.height-50, 'goal');
@@ -148,22 +142,33 @@
 
             };
 
+        
+            function playerCollision(a, b) {
+                //http://phaser.io/docs/2.4.6/Phaser.Physics.P2.Body.html#onEndContact
+                //console.log("x:" + a.sprite.data_shape + " y:" + a.sprite.data_shape);
+                if (a.sprite) {
+                    console.log("Player collided with " + a.sprite.data_shape)
+                }
+            }
+        
+
             // Snake Experiment
             function createSnake(snakeHead, length) {
                 console.log("Creating snake at " + snakeHead.body.x + "," + snakeHead.body.y);
                 var lastitem = snakeHead;
-                //snakeHead.body.mass = length;
                 
                 
                 for(var i = 0; i < 10; i++) {
                     console.log("Creating snake segment " + i + " at " + snakeHead.body.x + "," + snakeHead.body.y);
                     var nextitem = game.add.sprite(snakeHead.body.x+(15*i), snakeHead.body.y+(15*i), 'snakebody');
-                    game.physics.p2.enable(nextitem);
+                    game.physics.p2.enable(nextitem, true);
                     nextitem.body.setCircle(16);
-                    nextitem.body.mass = length / i;
-                    //game.physics.p2.createRevoluteConstraint(nextitem, [32,32], lastitem, [32,32], 20000);
-                    //lastitem = nextitem;
+                    nextitem.body.mass = 1;
+                    nextitem.body.data.gravityScale=0
+                    game.physics.p2.createRevoluteConstraint(nextitem, [-15,0], lastitem, [15,0], 20000);
+                    lastitem = nextitem;
                 }
+                return (nextitem);
                 
             }
 
@@ -200,17 +205,23 @@
                 
                 if(spacekey.downDuration(5))
                 {
+                    player.animations.add('player_spritesheet', [13,14,15]);
+                    player.animations.play('player_spritesheet', 5, true);
                     switch(hero_current) {
                         case hero_state.SQUARE:
-                            player.animations.play('player_square_spritesheet', 5, true);
+                            player.animations.add('player_spritesheet', [8,8,8,8,8,8,8,8,9]);
+                            player.animations.play('player_spritesheet', 5, true);
                             hero_current = hero_state.TRIANGLE;
                             break;
                         case hero_state.TRIANGLE:
-                            player.animations.play('player_square_spritesheet', 5, true);
+                            player.animations.add('player_spritesheet', [4,4,4,4,4,4,4,4,5]);
+                            player.animations.play('player_spritesheet', 5, true);
                             hero_current = hero_state.CIRCLE;
                             break;
                         case hero_state.CIRCLE:
-                            player.animations.play('player_square_spritesheet', 5, true);
+                            player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1]);
+                            player.animations.play('player_spritesheet', 5, true);
+
                             hero_current = hero_state.SQUARE;
                             break;
                     }
@@ -258,6 +269,14 @@
                                     npc.body.data.velocity[1] = delta_y
                                 }
                                 break;
+                            }
+                            if (npc.data_shape == "snake") {
+                                var angle = Math.atan2(delta_y, delta_x );
+                                if(Math.abs(npc.body.rotation - angle) > 0.08) {
+                                    // Don't bother if within 5 degrees
+                                    console.log("Updating snake rotation from " + npc.rotation + " to " + angle);
+                                    npc.body.rotation = angle;
+                                }                        
                             }
                             //npc.body.data.velocity[0] = delta_x
                             //npc.body.data.velocity[1] = delta_y
