@@ -6,8 +6,7 @@
 
     <body>
         <script type='text/javascript'>
-            //OMG Flocking http://www.emanueleferonato.com/2016/01/12/how-to-simulate-flocking-behavior-with-boids-using-html5-and-phaser/
-            
+            //GLOBALS
             var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', {preload: preload, create: create, update: update});
             var hero_state = { SQUARE:1, TRIANGLE:2, CIRCLE:3 };
             var hero_current;
@@ -20,17 +19,15 @@
             var npcs;
             var fps;
             var end_goal;
-            
             var cursorproxybody;
             var line;
-            
             var snakeHead;
-
-            
             var playerCollisionGroup;
             var goalCollisionGroup;
             var enemyCollisionGroup;
             var snakebits;
+            var hitpoints = 100;
+            var gamestring = "Tiny Bags of Water You Are Made Of : ";
             
             
             function preload(){
@@ -46,8 +43,7 @@
                 game.load.image('tileset1', 'assets/images/organic-tileset.png');
                 game.load.image('background', 'assets/images/background.png');
                 
-                //game.load.audio('music', 'assets/sound/background_music.wav');
-
+                game.load.audio('music', 'assets/sound/background_music.mp3');
             };
 
             function create(){
@@ -67,7 +63,7 @@
                 map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52,53], true, 'layer1');
                 game.physics.p2.convertTilemap(map, layer);
                 
-                text = game.add.text(32, 32, 'Tiny Bags of Water you are made Of : ' + game.world.width + 'x' + game.world.height, {font: '15px Arial', fill: '#FFFFFF' });
+                text = game.add.text(32, 32, gamestring + game.world.width + 'x' + game.world.height, {font: '15px Arial', fill: '#FFFFFF' });
                 text.fixedToCamera=true;
                 
                 fps = game.add.text(32, 60, 'fps', {font: '15px Arial', fill: '#FFFFFF' });
@@ -105,23 +101,22 @@
                     /*
                         Friendly animations are frames 0-4.  Angry animations are frames 5-9.
                     */
-                    
                     var rand = Math.random() * 3
                     if (rand >= 2) { // circle
                         var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_circle');
                         npc.animations.add('friendly_circle', [0,0,0,1,2,3,4]);
                         npc.animations.play('friendly_circle', (Math.random() * 5), true);
-                        npc.data_shape = "circle"
+                        npc.data_shape = 'circle';
                     } else if (rand >= 1) { // triangle
                         var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_triangle');
                         npc.animations.add('friendly_triangle', [0,0,0,1,2,3,4]);
                         npc.animations.play('friendly_triangle', (Math.random() * 5), true);
-                        npc.data_shape = "triangle"
+                        npc.data_shape = 'triangle';
                     } else if (rand >= 0) { // square
                         var npc = npcs.create(game.world.randomX, game.world.randomY, 'friendly_square');
                         npc.animations.add('friendly_square', [0,0,0,1,2,3,4]);
                         npc.animations.play('friendly_square', (Math.random() * 5), true);
-                        npc.data_shape = "square"
+                        npc.data_shape = 'square';
                     }
                     npc.body.setCircle(16);
                 }
@@ -135,10 +130,11 @@
             
                 // goal definition.
                 end_goal = game.add.group();
-                var goal = end_goal.create(game.world.width-50, game.world.height.height-50, 'goal');
+                var goal = end_goal.create(game.world.width/2, game.world.height/2, 'goal');
                 game.physics.p2.enable(goal);
                 goal.body.immovable = true;
                 goal.body.setCircle(10);
+                goal.data_shape = "GOAL"
 
             };
 
@@ -147,25 +143,40 @@
                 //http://phaser.io/docs/2.4.6/Phaser.Physics.P2.Body.html#onEndContact
                 //console.log("x:" + a.sprite.data_shape + " y:" + a.sprite.data_shape);
                 if (a.sprite) {
-                    console.log("Player collided with " + a.sprite.data_shape)
+                    console.log("Player collided with " + a.sprite.data_shape);
+                    if(a.sprite.data_shape == "GOAL") {
+                        text.text = "GAME OVER";
+                    } else if (a.sprite.data_shape == 'circle') {
+                        hitpoints -= 5;
+                    } else if (a.sprite.data_shape == 'triangle') {
+                        hitpoints -= 7;
+                    } else if (a.sprite.data_shape == 'square') {
+                        hitpoints -= 10;
+                    }
+                    
+                    if (hitpoints <= 0) {
+                        text.text = "GAME OVER";
+                    }
+                    
+                    text.text = gamestring + " hitpoints = " + hitpoints;
                 }
             }
         
 
             // Snake Experiment
             function createSnake(snakeHead, length) {
-                console.log("Creating snake at " + snakeHead.body.x + "," + snakeHead.body.y);
+                //console.log("Creating snake at " + snakeHead.body.x + "," + snakeHead.body.y);
                 var lastitem = snakeHead;
                 
                 
                 for(var i = 0; i < 10; i++) {
-                    console.log("Creating snake segment " + i + " at " + snakeHead.body.x + "," + snakeHead.body.y);
+                    //console.log("Creating snake segment " + i + " at " + snakeHead.body.x + "," + snakeHead.body.y);
                     var nextitem = game.add.sprite(snakeHead.body.x+(15*i), snakeHead.body.y+(15*i), 'snakebody');
                     game.physics.p2.enable(nextitem, true);
                     nextitem.body.setCircle(16);
                     nextitem.body.mass = 1;
                     nextitem.body.data.gravityScale=0
-                    game.physics.p2.createRevoluteConstraint(nextitem, [-15,0], lastitem, [15,0], 20000);
+                    game.physics.p2.createRevoluteConstraint(nextitem, [0,-10], lastitem, [0,10], 20000);
                     lastitem = nextitem;
                 }
                 return (nextitem);
@@ -221,7 +232,6 @@
                         case hero_state.CIRCLE:
                             player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1]);
                             player.animations.play('player_spritesheet', 5, true);
-
                             hero_current = hero_state.SQUARE;
                             break;
                     }
@@ -274,7 +284,7 @@
                                 var angle = Math.atan2(delta_y, delta_x );
                                 if(Math.abs(npc.body.rotation - angle) > 0.08) {
                                     // Don't bother if within 5 degrees
-                                    console.log("Updating snake rotation from " + npc.rotation + " to " + angle);
+                                    //console.log("Updating snake rotation from " + npc.rotation + " to " + angle);
                                     npc.body.rotation = angle;
                                 }                        
                             }
@@ -311,9 +321,6 @@
                 
             };
             
-            function playerHits(body1, body2) {
-                text.text = 'Player hit something';
-            };
 
         </script>
     </body>
