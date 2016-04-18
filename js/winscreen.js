@@ -8,10 +8,10 @@ winScreen.prototype = {
         
     },
     create: function(){
-        var text = this.game.add.text(100, 50, "You Win", {fill: '#FFFFFF' });
-        this.game.time.events.add(Phaser.Timer.SECOND * 5, this.toTitleScreen, this);
+        var text = this.game.add.text(50, 50, "You Win!", {fill: '#FFFFFF' });
+        this.game.time.events.add(Phaser.Timer.SECOND * 5, this.toCreditScreen, this);
     },
-    toLoadScreen: function(){
-        this.game.state.start('creditScreen');
+    toCreditScreen: function(){
+        this.game.state.start('creditsScreen');
     }
 }

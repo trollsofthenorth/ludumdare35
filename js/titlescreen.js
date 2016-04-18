@@ -6,24 +6,30 @@ titleScreen.prototype = {
     
     preload: function(){
         
+        
     },
     create: function(){
-        // Title
-        var style = { font: "bold 32px Arial", fill: "#fff"};
-        var text = this.game.add.text(100, 280, "You are the soup...", style);
-        text.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
         
+        // Intro image add.
+        this.game.add.tileSprite(0,0,800,600,'intro');
         
-        var text = this.game.add.text(100, 50, "Debug", {fill: '#FFFFFF' });
-        var button = this.game.add.button(250,50, 'advancebutton', this.toTestStage, this);
+        // Button for test stage.
+        //var button = this.game.add.button(0, 0, 'start-button', this.toTestStage, this);
         
-        var text = this.game.add.text(100, 150, "Would you like to play a game?", {fill: '#FFFFFF' });
-        var button = this.game.add.button(550,150, 'advancebutton', this.toStage1, this);
+        // Button for first stage.
+        var button = this.game.add.button(((game.camera.width /2) -64),450, 'start-button', this.toStage1, this);
+        
+        var style = { font: "bold 15px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+        var text = this.game.add.text(((game.camera.width /2) -100), 350, "Press <space> to shapeshift\nPress <up>, <down>. <left>, or <right> to move\nEat like shapes\nAvoid different shapes", style);
+        //var credits_button = this.game.add.button(((game.camera.width/2)-64),game.camera.height-100), 'unknown', this.toCredits, this);
     },
     toTestStage: function(){
-        this.game.state.start('testStage');
+        this.game.state.start('stage6');
     },
     toStage1: function(){
         this.game.state.start('stage1');
     },
+    toCredits: function(){
+        this.game.state.start('creditsScreen');
+    }
 }

@@ -16,20 +16,28 @@
             var game = new Phaser.Game(800, 600, Phaser.CANVAS, '');
             var hero_state = { SQUARE:1, TRIANGLE:2, CIRCLE:3 };
             var game_state = { PLAYING:1, OVER:2 };
-            var hero_current_state = hero_state.SQUARE;
+            var hero_current_state;
             var game_current_state;
             var player;
             var cursors;
             var field;
             var spacekey;
             var music;
+            var enemyhit;
+            var youwin;
+            var youlose;
+            var shapeshift;
+            var eatit;
             var text;
             var npcs;
             var fps;
             var score = 0;  // score counter
             var score_like = 10; // points for like collision
             var score_unlike = -20; // points for unlike collision
+            var score_win = 0;
+            
             var end_goal;
+            var goal;
             var line;
             var snakeHead;
             var playerCollisionGroup;
@@ -37,7 +45,7 @@
             var enemyCollisionGroup;
             var snakebits;
             var hitpoints = 100;
-            var gamestring = "Shape Soup! : ";
+            var gamestring = "Shape Man! : ";
             //var loading_x = 32;
             //var loading_y = 80;
             
@@ -47,6 +55,9 @@
             var phys_spread_range = 1100;
             
             // STAGES AND SCREENS
+            var nextStageButton;
+            var retryStageButton;
+            var nextStage;
             
             var testStage = function(game){
                 console.log('Starting test stage...');
@@ -68,6 +79,20 @@
             };
             stage3.prototype = {preload: preload, create: stage_three_create, update: update};
             
+            var stage4 = function(game){
+                console.log('Starting stage 3...');
+            };
+            stage4.prototype = {preload: preload, create: stage_four_create, update: update};
+            
+            var stage5 = function(game){
+                console.log('Starting stage 3...');
+            };
+            stage5.prototype = {preload: preload, create: stage_five_create, update: update};
+            
+            var stage6 = function(game){
+                console.log('Starting stage 3...');
+            };
+            stage6.prototype = {preload: preload, create: stage_six_create, update: update};
             
             // Creating other stages and screens for future development.
             game.state.add('loadScreen', loadScreen);
@@ -76,6 +101,9 @@
             game.state.add('stage1', stage1);
             game.state.add('stage2', stage2);
             game.state.add('stage3', stage3);
+            game.state.add('stage4', stage4);
+            game.state.add('stage5', stage5);
+            game.state.add('stage6', stage6);
             game.state.add('defeatScreen', defeatScreen);
             game.state.add('winScreen', winScreen);
             game.state.add('creditsScreen', creditsScreen);
@@ -93,14 +121,36 @@
             */
             
             function kill_npc(npc_sprite) {
+                eatit = game.add.audio('eatit');
+                youwin = game.add.audio('youwin');
+                youlose = game.add.audio('youlose');
                 console.log('killing ' + npc_sprite.data_shape);
                 npc_sprite.kill();
+                //play sfx
+                eatit.play();
+                /*
                 npcs.children.forEach( function (item, idx) {
                     if (item == npc_sprite) {
                         //console.log('Found it! '+ idx);
                     }
                 });
+                */
+
             };
+            
+            function nextStageCallback(a) {
+                console.log("NExt Now!");
+                if (nextStage) {
+                    console.log("nextStage = " + nextStage);
+                    this.game.state.start(nextStage);
+                }
+            };
+            
+            function retryStageCallback(a) {
+                console.log("NExt Now!");
+                game.state.start(game.state.current);
+            };
+            
             
             function preload(){
                 game.time.advancedTiming = true;
@@ -110,6 +160,9 @@
                 game.load.tilemap('stage1map', 'assets/stages/stage1map.json', null, Phaser.Tilemap.TILED_JSON);
                 game.load.tilemap('stage2map', 'assets/stages/stage2map.json', null, Phaser.Tilemap.TILED_JSON);
                 game.load.tilemap('stage3map', 'assets/stages/stage3map.json', null, Phaser.Tilemap.TILED_JSON);
+                game.load.tilemap('stage4map', 'assets/stages/stage4map.json', null, Phaser.Tilemap.TILED_JSON);
+                game.load.tilemap('stage5map', 'assets/stages/stage5map.json', null, Phaser.Tilemap.TILED_JSON);
+                game.load.tilemap('stage6map', 'assets/stages/stage6map.json', null, Phaser.Tilemap.TILED_JSON);
                 
                 // Load character spritesheets.
                 game.load.spritesheet('friendly_triangle', "assets/images/triangle-spritesheet.png", 32, 32);
@@ -128,25 +181,62 @@
                 // Load music
                 game.load.audio('music', 'assets/sound/background_music.mp3');
                 
+                // Load sfx
+                game.load.audio('eatit', 'assets/sound/eatit.mp3');
+                game.load.audio('enemyhit', 'assets/sound/enemyhit.mp3');
+                game.load.audio('youwin', 'assets/sound/youwin.mp3');
+                game.load.audio('youlose', 'assets/sound/youlose.mp3');
+                game.load.audio('shapeshift', 'assets/sound/shapeshift.mp3');
+                
             };
 
             function stage_test_create(){
+                score_win = 30;
+                nextStage = "titleScreen";
+                
                 map = game.add.tilemap('testmap', 32, 32);
                 shared_create();
             };
 
             function stage_one_create(){
+                score_win = 1000;
+                nextStage = "stage2";
                 map = game.add.tilemap('stage1map', 32, 32);
                 shared_create();
             };
             
             function stage_two_create(){
+                score_win = 1000;
+                nextStage = "stage3";
                 map = game.add.tilemap('stage2map', 32, 32);
                 shared_create();
             };
             
             function stage_three_create(){
+                score_win = 1090;
+                nextStage = "stage4";
                 map = game.add.tilemap('stage3map', 32, 32);
+                shared_create();
+            };
+            
+            function stage_four_create(){
+                score_win = 1100;
+                nextStage = "stage5";
+                map = game.add.tilemap('stage4map', 32, 32);
+                shared_create();
+            };
+            
+            function stage_five_create(){
+                score_win = 1100;
+                nextStage = "stage6";
+                map = game.add.tilemap('stage5map', 32, 32);
+                shared_create();
+            };
+            
+            function stage_six_create(){
+                score_win = 1500;
+                nextStage = "winScreen";
+                map = game.add.tilemap('stage6map', 32, 32);
                 shared_create();
             };
             
@@ -155,6 +245,21 @@
             }
             
             function shared_create() {
+                score = 0; // current score
+                hero_current_state = hero_state.SQUARE; // Always start as a square.
+                //load and start music
+                music = game.add.audio('music');
+                music.play();
+                music.loopFull(0.6);
+                
+                nextStageButton = game.add.button(((game.camera.width /2) -64), 400, 'next-button', nextStageCallback, this, 2, 1, 0);
+                nextStageButton.kill();
+                nextStageButton.fixedToCamera=true;
+                
+                retryStageButton = game.add.button(((game.camera.width /2) -264), 400, 'try-again-button', retryStageCallback, this, 2, 1, 0);
+                retryStageButton.kill();
+                retryStageButton.fixedToCamera=true;
+                
                 
                 // Common map logic
                 map.addTilesetImage('tileset');
@@ -217,11 +322,9 @@
                 
                 map.createFromObjects('objectLayer', 76, 'friendly_triangle', 0, true, false, triangles);
                 map.createFromObjects('objectLayer', 126, 'friendly_square', 0, true, false, squares);
-                map.createFromObjects('objectLayer', 177, 'friendly_circle', 0, true, false, circles);
+                map.createFromObjects('objectLayer', 176, 'friendly_circle', 0, true, false, circles);
                 
-                music = game.add.audio('music');
-                //music.play();
-                //music.loopFull(0.6);
+                
                 
                 map.setCollision([0,1,2,3,4,25,26,27,28,29,50,51,52,53], true, 'tileLayer');
                 game.physics.p2.convertTilemap(map, tileLayer);
@@ -347,8 +450,17 @@
             function playerCollision(a, b) {
                 //http://phaser.io/docs/2.4.6/Phaser.Physics.P2.Body.html#onEndContact
                 //console.log("x:" + a.sprite.data_shape + " y:" + a.sprite.data_shape);
+                enemyhit = game.add.audio('enemyhit');
                 if (a.sprite) {
                     //console.log("Player collided with " + a.sprite.data_shape);
+                    
+                    if(a.sprite.data_shape == "GOAL") {
+                        //text.text = "GAME OVER -- YOU WIN!!!!";
+                        //game_current_state = game_state.OVER;
+                        score += 1000;
+                        kill_npc(a.sprite);
+                        return;
+                    }
                     
                     switch(hero_current_state) {
                         case hero_state.CIRCLE:
@@ -359,6 +471,7 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike;
+                                enemyhit.play();
                             }
                             break;
 
@@ -370,6 +483,7 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike;
+                                enemyhit.play();
                             }
                             break;
 
@@ -381,57 +495,14 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike
+                                enemyhit.play();
                             }
                             break;
                     }
-                    
-                    if(a.sprite.data_shape == "GOAL") {
-                        text.text = "GAME OVER -- YOU WIN!!!!";
-                        game_current_state = game_state.OVER;
-                        //TODO - play sound effect
-                    }
-                    /*
-                    if (game_current_state == game_state.PLAYING) {
-                        if (a.sprite.data_shape == 'circle') {
-                            hitpoints -= circle_enemy.damage;
-                            //TODO - have enemy "bounce" off of hero?
-                            //TODO - play sound effect
-                        } else if (a.sprite.data_shape == 'triangle') {
-                            hitpoints -= triangle_enemy.damage;
-                        } else if (a.sprite.data_shape == 'square') {
-                            hitpoints -= square_enemy.damage;
-                        }
-                    
-                        if (hitpoints <= 0) {
-                            text.text = "GAME OVER -- YOU LOSE!!!!";
-                            game_current_state = game_state.OVER;
-                            //TODO - play sound effect
-                        }
-                        text.text = gamestring + " hitpoints = " + hitpoints;
-                    }
-                    */
                 }
             }
 
-            // Snake Experiment
-            function createSnake(snakeHead, length) {
-                //console.log("Creating snake at " + snakeHead.body.x + "," + snakeHead.body.y);
-                var lastitem = snakeHead;
-                
-                
-                for(var i = 0; i < 10; i++) {
-                    //console.log("Creating snake segment " + i + " at " + snakeHead.body.x + "," + snakeHead.body.y);
-                    var nextitem = game.add.sprite(snakeHead.body.x+(15*i), snakeHead.body.y+(15*i), 'snakebody');
-                    game.physics.p2.enable(nextitem, false);
-                    nextitem.body.setCircle(16);
-                    nextitem.body.mass = 1;
-                    nextitem.body.data.gravityScale=0;
-                    game.physics.p2.createRevoluteConstraint(nextitem, [0,-10], lastitem, [0,10], 20000);
-                    lastitem = nextitem;
-                }
-                return (nextitem);
-                
-            }
+
 
             function update(){
                 //player.body.setZeroVelocity();
@@ -468,19 +539,23 @@
 
                 if(spacekey.downDuration(5))
                 {
+                    shapeshift = game.add.audio('shapeshift');
                     switch(hero_current_state) {
                         case hero_state.SQUARE:
                             player.animations.add('player_spritesheet', [8,8,8,8,8,8,8,8,9]);
+                            shapeshift.play();
                             player.animations.play('player_spritesheet', 5, true);
                             hero_current_state = hero_state.TRIANGLE;
                             break;
                         case hero_state.TRIANGLE:
                             player.animations.add('player_spritesheet', [4,4,4,4,4,4,4,4,5]);
+                            shapeshift.play();
                             player.animations.play('player_spritesheet', 5, true);
                             hero_current_state = hero_state.CIRCLE;
                             break;
                         case hero_state.CIRCLE:
                             player.animations.add('player_spritesheet', [0,0,0,0,0,0,0,0,1]);
+                            shapeshift.play();
                             player.animations.play('player_spritesheet', 5, true);
                             hero_current_state = hero_state.SQUARE;
                             break;
@@ -570,11 +645,48 @@
                 
                 
                 constrainVelocity(player, 20);
-                fps.text = (game.time.fps || '--');
+                
             };
             
             function hud_update(){
-                text.text = "Score: " + score
+                fps.text = (game.time.fps || '--');
+                
+                //calculate number of enemies left
+                var c = circles.countLiving();
+                var t = triangles.countLiving();
+                var s = squares.countLiving();
+                var total = c + t + s;
+                
+                var newtext = "Score: " + score + " / " + score_win + ":: Enemies Left = " + total;
+                if (text.text != newtext) {
+                    text.text = newtext;
+                }
+                
+                var possiblepointsleft;
+                possiblepointsleft=0;
+                for(var x=0; x<npcs.children.length; x++) {
+                    possiblepointsleft+=(npcs.children[x].countLiving() * score_like);
+                }
+                if( goal && goal.alive ) {
+                    possiblepointsleft+=1000;
+                }
+                
+                if(score>=score_win) {
+                    music.stop();
+                    youwin.play();
+                    if (!nextStageButton.alive) {
+                        nextStageButton.revive();
+                        game.world.bringToTop(nextStageButton);
+                    }
+                } else if (possiblepointsleft+score<score_win) { 
+                    music.stop();
+                    youlose.play();
+                    if (!retryStageButton.alive) {
+                        retryStageButton.revive();
+                        game.world.bringToTop(retryStageButton);
+                    }
+                }
+                
             }
             
             function constrainVelocity(sprite, maxVelocity) {
