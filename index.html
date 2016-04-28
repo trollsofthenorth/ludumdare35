@@ -166,7 +166,7 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike;
-                                enemyhit.play();
+                                enemyhit.play(forceRestart: true);
                             }
                             break;
 
@@ -178,7 +178,7 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike;
-                                enemyhit.play();
+                                enemyhit.play(forceRestart: true);
                             }
                             break;
 
@@ -190,7 +190,7 @@
                             } else {
                                 //console.log('unlike collision')
                                 score += score_unlike
-                                enemyhit.play();
+                                enemyhit.play(forceRestart: true);
                             }
                             break;
                     }
@@ -265,8 +265,6 @@
               }
                 
             };
-            
-            
             
             // Common preload function.
             function preload(){
@@ -361,7 +359,6 @@
             function empty_create() {
                 console.log("EMPTY_CREATE CALLED");
             }
-            
             
             // Common create function for all stages.
             function shared_create() {
