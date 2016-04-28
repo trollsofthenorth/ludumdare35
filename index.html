@@ -31,6 +31,10 @@
             var text;
             var npcs;
             var fps;
+
+            var playWinOnce; // fix for bug #1.
+            var playLoseOnce; // Fix for bug #1.
+            
             var score = 0;  // score counter
             var score_like = 10; // points for like collision
             var score_unlike = -20; // points for unlike collision
@@ -59,42 +63,39 @@
             var retryStageButton;
             var nextStage;
             
+            // Creating stages.
             var testStage = function(game){
                 console.log('Starting test stage...');
             };
-            testStage.prototype = {preload: preload, create: stage_test_create, update: update};
-            
             var stage1 = function(game){
                 console.log('Starting stage 1...');
             };
-            stage1.prototype = {preload: preload, create: stage_one_create, update: update};
-            
             var stage2 = function(game){
                 console.log('Starting stage 2...');
             };
-            stage2.prototype = {preload: preload, create: stage_two_create, update: update};
-            
             var stage3 = function(game){
                 console.log('Starting stage 3...');
             };
-            stage3.prototype = {preload: preload, create: stage_three_create, update: update};
-            
             var stage4 = function(game){
                 console.log('Starting stage 3...');
             };
-            stage4.prototype = {preload: preload, create: stage_four_create, update: update};
-            
             var stage5 = function(game){
                 console.log('Starting stage 3...');
             };
-            stage5.prototype = {preload: preload, create: stage_five_create, update: update};
-            
             var stage6 = function(game){
                 console.log('Starting stage 3...');
             };
+            
+            // Defining functions for stages.
+            testStage.prototype = {preload: preload, create: stage_test_create, update: update};
+            stage1.prototype = {preload: preload, create: stage_one_create, update: update};
+            stage2.prototype = {preload: preload, create: stage_two_create, update: update};
+            stage3.prototype = {preload: preload, create: stage_three_create, update: update};
+            stage4.prototype = {preload: preload, create: stage_four_create, update: update};
+            stage5.prototype = {preload: preload, create: stage_five_create, update: update};
             stage6.prototype = {preload: preload, create: stage_six_create, update: update};
             
-            // Creating other stages and screens for future development.
+            // Adding stages as states to game context.
             game.state.add('loadScreen', loadScreen);
             game.state.add('titleScreen', titleScreen);
             game.state.add('testStage', testStage);
@@ -109,21 +110,9 @@
             game.state.add('creditsScreen', creditsScreen);
             game.state.start('loadScreen');
             
-            /*
-            function enemy_creation(shape, damage, speed) {
-                this.shape = shape;
-                this.damage = damage;
-                this.speed = speed;
-            }
-            var circle_enemy = new enemy_creation("circle", 5, 20);
-            var triangle_enemy = new enemy_creation("triangle", 3, 30);
-            var square_enemy = new enemy_creation("square", 10, 10);
-            */
-            
             function kill_npc(npc_sprite) {
-                eatit = game.add.audio('eatit');
-                youwin = game.add.audio('youwin');
-                youlose = game.add.audio('youlose');
+                // Moved the adding audio logic to the shared_create function.
+                
                 console.log('killing ' + npc_sprite.data_shape);
                 npc_sprite.kill();
                 //play sfx
@@ -137,7 +126,9 @@
                 */
 
             };
-            
+
+            function play_lose_sound() { youlose.play(); }
+
             function nextStageCallback(a) {
                 console.log("NExt Now!");
                 if (nextStage) {
@@ -150,8 +141,134 @@
                 console.log("NExt Now!");
                 game.state.start(game.state.current);
             };
+
+            function playerCollision(a, b) {
+                //http://phaser.io/docs/2.4.6/Phaser.Physics.P2.Body.html#onEndContact
+                //console.log("x:" + a.sprite.data_shape + " y:" + a.sprite.data_shape);
+                enemyhit = game.add.audio('enemyhit');
+                if (a.sprite) {
+                    //console.log("Player collided with " + a.sprite.data_shape);
+                    
+                    if(a.sprite.data_shape == "GOAL") {
+                        //text.text = "GAME OVER -- YOU WIN!!!!";
+                        //game_current_state = game_state.OVER;
+                        score += 1000;
+                        kill_npc(a.sprite);
+                        return;
+                    }
+                    
+                    switch(hero_current_state) {
+                        case hero_state.CIRCLE:
+                            if (a.sprite.data_shape == 'circle') {
+                                //console.log('like collision')
+                                score += score_like;
+                                kill_npc(a.sprite);
+                            } else {
+                                //console.log('unlike collision')
+                                score += score_unlike;
+                                enemyhit.play();
+                            }
+                            break;
+
+                        case hero_state.TRIANGLE:
+                            if (a.sprite.data_shape == 'triangle') {
+                                //console.log('like collision')
+                                score += score_like;
+                                kill_npc(a.sprite);
+                            } else {
+                                //console.log('unlike collision')
+                                score += score_unlike;
+                                enemyhit.play();
+                            }
+                            break;
+
+                        case hero_state.SQUARE:
+                            if (a.sprite.data_shape == 'square') {
+                                //console.log('like collision')
+                                score += score_like;
+                                kill_npc(a.sprite);
+                            } else {
+                                //console.log('unlike collision')
+                                score += score_unlike
+                                enemyhit.play();
+                            }
+                            break;
+                    }
+                }
+            }
+            
+            function hud_update(){
+                fps.text = (game.time.fps || '--');
+                
+                //calculate number of enemies left
+                var c = circles.countLiving();
+                var t = triangles.countLiving();
+                var s = squares.countLiving();
+                var total = c + t + s;
+                
+                var newtext = "Score: " + score + " / " + score_win + ":: Enemies Left = " + total;
+                if (text.text != newtext) {
+                    text.text = newtext;
+                }
+                
+                var possiblepointsleft;
+                possiblepointsleft=0;
+                for(var x=0; x<npcs.children.length; x++) {
+                    possiblepointsleft+=(npcs.children[x].countLiving() * score_like);
+                }
+                if( goal && goal.alive ) {
+                    possiblepointsleft+=1000;
+                }
+                
+                if(score>=score_win) {
+                    music.stop();
+                    
+                    playWinOnce(); // Fix for bug #1.
+                    playWinOnce = function() { return; }; // Fix for bug #1.
+                    
+                    if (!nextStageButton.alive) {
+                        nextStageButton.revive();
+                        game.world.bringToTop(nextStageButton);
+                    }
+                } else if (possiblepointsleft+score<score_win) { 
+                    music.stop();
+                    
+                    playLoseOnce();
+                    playLoseOnce = function() { return; }; // Fix for bug #1.
+            
+                    
+                    if (!retryStageButton.alive) {
+                        retryStageButton.revive();
+                        game.world.bringToTop(retryStageButton);
+                    }
+                }
+                
+            }
+            
+            function constrainVelocity(sprite, maxVelocity) {
+              var body = sprite.body
+              var angle, currVelocitySqr, vx, vy;
+            
+              vx = body.data.velocity[0];
+              vy = body.data.velocity[1];
+              
+              currVelocitySqr = vx * vx + vy * vy;
+              
+              if (currVelocitySqr > maxVelocity * maxVelocity) {
+                angle = Math.atan2(vy, vx);
+                
+                vx = Math.cos(angle) * maxVelocity;
+                vy = Math.sin(angle) * maxVelocity;
+                
+                body.data.velocity[0] = vx;
+                body.data.velocity[1] = vy;
+              }
+                
+            };
             
             
+            
+            // Common preload function.
             function preload(){
                 game.time.advancedTiming = true;
                 
@@ -189,7 +306,8 @@
                 game.load.audio('shapeshift', 'assets/sound/shapeshift.mp3');
                 
             };
-
+            
+            // Individual create functions for each stage.
             function stage_test_create(){
                 score_win = 30;
                 nextStage = "titleScreen";
@@ -244,10 +362,21 @@
                 console.log("EMPTY_CREATE CALLED");
             }
             
+            
+            // Common create function for all stages.
             function shared_create() {
                 score = 0; // current score
                 hero_current_state = hero_state.SQUARE; // Always start as a square.
-                //load and start music
+                
+                
+                // load special effects.
+                eatit = game.add.audio('eatit');
+                youwin = game.add.audio('youwin');
+                youlose = game.add.audio('youlose');
+                playWinOnce = function() { youwin.play(); } // Fix for bug #1.
+                playLoseOnce = function() { youlose.play(); } // Fix for bug #1.
+                
+                // load game music.
                 music = game.add.audio('music');
                 music.play();
                 music.loopFull(0.6);
@@ -445,65 +574,8 @@
 
                 game_current_state = game_state.PLAYING;
             };
-
-        
-            function playerCollision(a, b) {
-                //http://phaser.io/docs/2.4.6/Phaser.Physics.P2.Body.html#onEndContact
-                //console.log("x:" + a.sprite.data_shape + " y:" + a.sprite.data_shape);
-                enemyhit = game.add.audio('enemyhit');
-                if (a.sprite) {
-                    //console.log("Player collided with " + a.sprite.data_shape);
-                    
-                    if(a.sprite.data_shape == "GOAL") {
-                        //text.text = "GAME OVER -- YOU WIN!!!!";
-                        //game_current_state = game_state.OVER;
-                        score += 1000;
-                        kill_npc(a.sprite);
-                        return;
-                    }
-                    
-                    switch(hero_current_state) {
-                        case hero_state.CIRCLE:
-                            if (a.sprite.data_shape == 'circle') {
-                                //console.log('like collision')
-                                score += score_like;
-                                kill_npc(a.sprite);
-                            } else {
-                                //console.log('unlike collision')
-                                score += score_unlike;
-                                enemyhit.play();
-                            }
-                            break;
-
-                        case hero_state.TRIANGLE:
-                            if (a.sprite.data_shape == 'triangle') {
-                                //console.log('like collision')
-                                score += score_like;
-                                kill_npc(a.sprite);
-                            } else {
-                                //console.log('unlike collision')
-                                score += score_unlike;
-                                enemyhit.play();
-                            }
-                            break;
-
-                        case hero_state.SQUARE:
-                            if (a.sprite.data_shape == 'square') {
-                                //console.log('like collision')
-                                score += score_like;
-                                kill_npc(a.sprite);
-                            } else {
-                                //console.log('unlike collision')
-                                score += score_unlike
-                                enemyhit.play();
-                            }
-                            break;
-                    }
-                }
-            }
-
-
-
+            
+            // Common update function.
             function update(){
                 //player.body.setZeroVelocity();
                 hud_update()  // update text on screen
@@ -648,69 +720,6 @@
                 
             };
             
-            function hud_update(){
-                fps.text = (game.time.fps || '--');
-                
-                //calculate number of enemies left
-                var c = circles.countLiving();
-                var t = triangles.countLiving();
-                var s = squares.countLiving();
-                var total = c + t + s;
-                
-                var newtext = "Score: " + score + " / " + score_win + ":: Enemies Left = " + total;
-                if (text.text != newtext) {
-                    text.text = newtext;
-                }
-                
-                var possiblepointsleft;
-                possiblepointsleft=0;
-                for(var x=0; x<npcs.children.length; x++) {
-                    possiblepointsleft+=(npcs.children[x].countLiving() * score_like);
-                }
-                if( goal && goal.alive ) {
-                    possiblepointsleft+=1000;
-                }
-                
-                if(score>=score_win) {
-                    music.stop();
-                    youwin.play();
-                    if (!nextStageButton.alive) {
-                        nextStageButton.revive();
-                        game.world.bringToTop(nextStageButton);
-                    }
-                } else if (possiblepointsleft+score<score_win) { 
-                    music.stop();
-                    youlose.play();
-                    if (!retryStageButton.alive) {
-                        retryStageButton.revive();
-                        game.world.bringToTop(retryStageButton);
-                    }
-                }
-                
-            }
-            
-            function constrainVelocity(sprite, maxVelocity) {
-              var body = sprite.body
-              var angle, currVelocitySqr, vx, vy;
-            
-              vx = body.data.velocity[0];
-              vy = body.data.velocity[1];
-              
-              currVelocitySqr = vx * vx + vy * vy;
-              
-              if (currVelocitySqr > maxVelocity * maxVelocity) {
-                angle = Math.atan2(vy, vx);
-                
-                vx = Math.cos(angle) * maxVelocity;
-                vy = Math.sin(angle) * maxVelocity;
-                
-                body.data.velocity[0] = vx;
-                body.data.velocity[1] = vy;
-              }
-                
-            };
-            
-
         </script>
     </body>
 </html>
