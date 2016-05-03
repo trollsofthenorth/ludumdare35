@@ -9,8 +9,8 @@ This is the first Ludumdare submission for all but one of the team members. We s
 * gabe-camp (concept, music, sound effects, programming)
 
 ## Instructions
-* Press <up>, <down>, <left>, or <right> keys to move.
-* Press <space> to shapeshift.
+* Press ``<up>``, ``<down>``, ``<left>``, or ``<right>`` keys to move.
+* Press ``<space>`` to shapeshift.
 * Eat the shapes that are similar to you to gain points.
 * Avoid the shapes that are dissimilar to you to avoid losing points.
 * Attain the required points on the HUD to go to the next stage. 
