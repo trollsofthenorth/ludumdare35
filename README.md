@@ -2,6 +2,8 @@
 
 This is the first Ludumdare submission for all but one of the team members. We started working on this at 0730h EST on 2016-04-16 and finished at around 2230h EST on 2016-04-17. Since we all have full time jobs, we could not continue to work on Monday. The entire game was created in 39 hours.
 
+**Play in browser: http://trollsofthenorth.github.io/ludumdare35/**
+
 ## Team Members
 * alanjcastonguay (concept, programming, stage design)
 * danieldsj (concept, art, programming, stage design)
